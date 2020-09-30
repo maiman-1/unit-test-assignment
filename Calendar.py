@@ -54,7 +54,7 @@ def get_calendar_api():
     return build('calendar', 'v3', credentials=creds)
 
 
-def get_upcoming_events(api, starting_time, number_of_events):
+def get_upcoming_events(api, starting_time, number_of_events, time_Max):
     """
     get_upcoming_events(api, starting_time, number_of_events)
 
@@ -72,7 +72,7 @@ def get_upcoming_events(api, starting_time, number_of_events):
     if number_of_events <= 0:
         raise ValueError("Number of events must be at least 1.")
 
-    events_result = api.events().list(calendarId='primary', timeMin=starting_time,
+    events_result = api.events().list(calendarId='primary', timeMin=starting_time, timeMax=time_Max,
                                       maxResults=number_of_events, singleEvents=True,
                                       orderBy='startTime').execute()
     return events_result.get('items', [])
@@ -92,6 +92,18 @@ def sub_five_years(time_now: int) -> datetime:
     num_years = 5
     return time_now.replace(time_now.year - num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
+def add_two_years(time_now: int) -> datetime:
+    """
+    Return the time 2 years after the current time recorded on the user's device to identify the appropriate time
+    span of the events to be listed.
+
+    @param time_now: The current time recorded on the user's devices
+    @type time_now: datetime class object. Formatted for use in get_upcoming_events
+    @return: The time 5 years before the current time
+    """
+    # Solution from https://stackoverflow.com/questions/5158160/python-get-datetime-for-3-years-ago-today
+    num_years = 2
+    return time_now.replace(time_now.year + num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
 def main():
     api = get_calendar_api()
@@ -100,8 +112,9 @@ def main():
 
     # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
     starting_time = sub_five_years(time_now)
+    end_time=add_two_years(time_now)
 
-    events = get_upcoming_events(api, starting_time, 10)
+    events = get_upcoming_events(api, starting_time, 10,end_time)
 
     if not events:
         print('No upcoming events found.')
