@@ -54,7 +54,7 @@ def get_calendar_api():
     return build('calendar', 'v3', credentials=creds)
 
 
-def get_upcoming_events(api, starting_time, number_of_events, time_Max):
+def get_upcoming_events(api, starting_time, number_of_events, time_Max, key_Word):
     """
     get_upcoming_events(api, starting_time, number_of_events)
 
@@ -73,7 +73,7 @@ def get_upcoming_events(api, starting_time, number_of_events, time_Max):
         raise ValueError("Number of events must be at least 1.")
 
     events_result = api.events().list(calendarId='primary', timeMin=starting_time, timeMax=time_Max,
-                                      maxResults=number_of_events, singleEvents=True,
+                                      maxResults=number_of_events, singleEvents=True, q=key_Word,
                                       orderBy='startTime').execute()
     return events_result.get('items', [])
 
@@ -105,6 +105,19 @@ def add_two_years(time_now: int) -> datetime:
     num_years = 2
     return time_now.replace(time_now.year + num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
+def delete_event(api, event_id):
+    """
+        Deletes a given event by its correspodning event id
+
+        @param api: The build generated in get_calendar_api() function
+        @type api: googleapiclient.discovery.build
+        @param event_id: The id corresponding to the a specific event
+        @type event_id: String
+        @return: No return
+        """
+    events_result = api.events().delete(calendarId='primary', eventId=event_id
+                                        )
+
 def main():
     api = get_calendar_api()
 
@@ -113,8 +126,9 @@ def main():
     # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
     starting_time = sub_five_years(time_now)
     end_time=add_two_years(time_now)
+    key_word="FIT2107"
 
-    events = get_upcoming_events(api, starting_time, 10,end_time)
+    events = get_upcoming_events(api, starting_time, 10,end_time,key_word)
 
     if not events:
         print('No upcoming events found.')
