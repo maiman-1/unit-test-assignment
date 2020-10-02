@@ -120,7 +120,7 @@ def delete_event(api, event_id):
     api.events().delete(calendarId='primary', eventId=event_id).execute()
 
 
-def edit_event(api, event_id):
+def edit_event(api, event_id, summary):
     """
         updates a given event by its corresponding event id
 
@@ -130,6 +130,10 @@ def edit_event(api, event_id):
         @type event_id: String
         @return: No return
     """
+    event = api.events().get(calendarId='primary', eventId='eventId').execute()
+
+    event['summary'] = summary
+
     api.events().update(calendarId='primary', eventId=event_id, body=event)
 
 
@@ -146,7 +150,9 @@ def print_menu() -> None:
     print("1. Show all events")
     print("2. Search for events")
     print("3. Delete events")
-    print("4. Quit")
+    print("4. Edit events")
+    print("5. Cancel events")
+    print("6. Quit")
 
 
 def get_all_events(api, time_now):
@@ -188,9 +194,23 @@ def search_all_events(api, time_now, key_word):
 
     return
 
+
 def cancel_event(api, event_id):
-    edit_event(api,event_id)
-    
+    """
+           updates a given event by its corresponding event id
+
+           @param api: The build generated in get_calendar_api() function
+           @type api: googleapiclient.discovery.build
+           @param event_id: The id corresponding to the a specific event
+           @type event_id: String
+           @return: No return
+       """
+    event = api.events().get(calendarId='primary', eventId='eventId').execute()
+
+    event['status'] = "cancelled"
+
+    api.events().update(calendarId='primary', eventId=event_id, body=event)
+
 
 def print_events(events):
     if not events:
@@ -232,6 +252,24 @@ def main():
                 events = get_all_events(api, time_now)
                 print_events(events)
         elif user_input == 4:
+            event_id = int(input("Select event to edit: "))
+            summary = int(input("Enter your summary message: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                edit_event(api, events[event_id - 1]["id"], summary)
+        elif user_input == 5:
+            event_id = int(input("Select event to canceled: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                cancel_event(api, events[event_id - 1]["id"])
+                print("Event has been cancelled")
+        elif user_input == 6:
             user_exit = True
         # print(events)
 
