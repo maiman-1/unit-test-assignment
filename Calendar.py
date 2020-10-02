@@ -185,8 +185,11 @@ def search_all_events(api, time_now, key_word):
 
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
-    return events
+    return
 
+def cancel_event(api, event_id):
+    edit_event(api,event_id)
+    
 
 def print_events(events):
     if not events:
@@ -202,8 +205,9 @@ def main():
 
     # Show the main menu:
     user_exit = False
+    # Global events variable
+    events = []
     while not user_exit:
-        events = []
         print_menu()
         user_input = int(input("Input option: "))
         if user_input == 1:
