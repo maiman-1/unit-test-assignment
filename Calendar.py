@@ -23,7 +23,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
 
 
 def get_calendar_api():
@@ -117,7 +117,7 @@ def delete_event(api, event_id):
         @type event_id: String
         @return: No return
         """
-    events_result = api.events().delete(calendarId='primary', eventId=event_id)
+    api.events().delete(calendarId='primary', eventId=event_id).execute()
 
 
 def edit_event(api, event_id):
@@ -130,7 +130,7 @@ def edit_event(api, event_id):
         @type event_id: String
         @return: No return
     """
-    updated_event = api.events().update(calendarId='primary', eventId=event_id, body=event)
+    api.events().update(calendarId='primary', eventId=event_id, body=event)
 
 
 # Main Menu Function
@@ -145,7 +145,8 @@ def print_menu() -> None:
     print("\nMenu:")
     print("1. Show all events")
     print("2. Search for events")
-    print("3. Quit")
+    print("3. Delete events")
+    print("4. Quit")
 
 
 def get_all_events(api, time_now):
@@ -191,9 +192,12 @@ def search_all_events(api, time_now, key_word):
 def print_events(events):
     if not events:
         print('No upcoming events found.')
+    num = 1
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        print(num, start, event['summary'])
+        # print(event["id"])
+        num += 1
 
 
 def main():
@@ -202,8 +206,9 @@ def main():
 
     # Show the main menu:
     user_exit = False
+    # Global events variable
+    events = []
     while not user_exit:
-        events = []
         print_menu()
         user_input = int(input("Input option: "))
         if user_input == 1:
@@ -214,6 +219,16 @@ def main():
             events = search_all_events(api, time_now, key_word)
             print_events(events)
         elif user_input == 3:
+            event_id = int(input("Select event to delete: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                delete_event(api, events[event_id - 1]["id"])
+                events = get_all_events(api, time_now)
+                print_events(events)
+        elif user_input == 4:
             user_exit = True
         # print(events)
 
