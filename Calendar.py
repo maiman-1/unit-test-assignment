@@ -133,26 +133,89 @@ def edit_event(api, event_id):
     updated_event = api.events().update(calendarId='primary', eventId=event_id, body=event)
 
 
+# Main Menu Function
+def print_menu() -> None:
+    """
+    Display menu to be used to guide user to use
+
+    :pre: Console is blank
+    :Post: Console displays the list of user Items
+    :Complexity: O(1)
+    """
+    print("\nMenu:")
+    print("1. Show all events")
+    print("2. Search for events")
+    print("3. Quit")
 
 
-def main():
-    api = get_calendar_api()
+def get_all_events(api, time_now):
+    """
+    Retrieve all events between 5 years ago and 2 years from now
 
-    time_now = datetime.datetime.utcnow()
-
+    @param api: Api for calendar (Google) used by the user
+    @type api:  googleapiclient.discovery.build
+    @param time_now: The current time in utc format
+    @type time_now: datetime class object
+    @return: void: Will print all events
+    """
     # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
     starting_time = sub_five_years(time_now)
     end_time = add_two_years(time_now)
-    key_word = "FIT2107"
+    key_word = ""
+
+    events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
+    return events
+
+
+def search_all_events(api, time_now, key_word):
+    """
+    Retrieve all events between 5 years ago and 2 years from now with specific key_word
+
+    @param api: Api for calendar (Google) used by the user
+    @type api:  googleapiclient.discovery.build
+    @param time_now: The current time in utc format
+    @type time_now: datetime class object
+    @param key_word: Events with this key word will be returned
+    @type key_word: String
+    @return: void: Will print all events
+    """
+    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
+    starting_time = sub_five_years(time_now)
+    end_time = add_two_years(time_now)
 
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
+    return events
+
+
+def print_events(events):
     if not events:
         print('No upcoming events found.')
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
 
+
+def main():
+    api = get_calendar_api()
+    time_now = datetime.datetime.utcnow()
+
+    # Show the main menu:
+    user_exit = False
+    while not user_exit:
+        events = []
+        print_menu()
+        user_input = int(input("Input option: "))
+        if user_input == 1:
+            events = get_all_events(api, time_now)
+            print_events(events)
+        elif user_input == 2:
+            key_word = input("Key words for event: ")
+            events = search_all_events(api, time_now, key_word)
+            print_events(events)
+        elif user_input == 3:
+            user_exit = True
+        # print(events)
 
 
 if __name__ == "__main__":  # Prevents the main() function from being called by the test suite runner
