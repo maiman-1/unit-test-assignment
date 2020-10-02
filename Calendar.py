@@ -92,6 +92,7 @@ def sub_five_years(time_now: int) -> datetime:
     num_years = 5
     return time_now.replace(time_now.year - num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
+
 def add_two_years(time_now: int) -> datetime:
     """
     Return the time 2 years after the current time recorded on the user's device to identify the appropriate time
@@ -105,6 +106,7 @@ def add_two_years(time_now: int) -> datetime:
     num_years = 2
     return time_now.replace(time_now.year + num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
+
 def delete_event(api, event_id):
     """
         Deletes a given event by its correspodning event id
@@ -115,8 +117,23 @@ def delete_event(api, event_id):
         @type event_id: String
         @return: No return
         """
-    events_result = api.events().delete(calendarId='primary', eventId=event_id
-                                        )
+    events_result = api.events().delete(calendarId='primary', eventId=event_id)
+
+
+def edit_event(api, event_id):
+    """
+        updates a given event by its corresponding event id
+
+        @param api: The build generated in get_calendar_api() function
+        @type api: googleapiclient.discovery.build
+        @param event_id: The id corresponding to the a specific event
+        @type event_id: String
+        @return: No return
+    """
+    updated_event = api.events().update(calendarId='primary', eventId=event_id, body=event)
+
+
+
 
 def main():
     api = get_calendar_api()
@@ -125,16 +142,17 @@ def main():
 
     # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
     starting_time = sub_five_years(time_now)
-    end_time=add_two_years(time_now)
-    key_word="FIT2107"
+    end_time = add_two_years(time_now)
+    key_word = "FIT2107"
 
-    events = get_upcoming_events(api, starting_time, 10,end_time,key_word)
+    events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
     if not events:
         print('No upcoming events found.')
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(start, event['summary'])
+
 
 
 if __name__ == "__main__":  # Prevents the main() function from being called by the test suite runner
