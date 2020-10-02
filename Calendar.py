@@ -192,7 +192,7 @@ def search_all_events(api, time_now, key_word):
 
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
-    return
+    return events
 
 
 def cancel_event(api, event_id):
@@ -205,11 +205,11 @@ def cancel_event(api, event_id):
            @type event_id: String
            @return: No return
        """
-    event = api.events().get(calendarId='primary', eventId='eventId').execute()
+    event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
     event['status'] = "cancelled"
 
-    api.events().update(calendarId='primary', eventId=event_id, body=event)
+    api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
 
 
 def print_events(events):
