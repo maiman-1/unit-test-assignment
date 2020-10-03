@@ -23,7 +23,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
-SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
+SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
 
 
 def get_calendar_api():
@@ -117,10 +117,10 @@ def delete_event(api, event_id):
         @type event_id: String
         @return: No return
         """
-    events_result = api.events().delete(calendarId='primary', eventId=event_id)
+    api.events().delete(calendarId='primary', eventId=event_id).execute()
 
 
-def edit_event(api, event_id):
+def edit_event(api, event_id, summary):
     """
         updates a given event by its corresponding event id
 
@@ -130,7 +130,11 @@ def edit_event(api, event_id):
         @type event_id: String
         @return: No return
     """
-    updated_event = api.events().update(calendarId='primary', eventId=event_id, body=event)
+    event = api.events().get(calendarId='primary', eventId='eventId').execute()
+
+    event['summary'] = summary
+
+    api.events().update(calendarId='primary', eventId=event_id, body=event)
 
 
 # Main Menu Function
@@ -145,7 +149,10 @@ def print_menu() -> None:
     print("\nMenu:")
     print("1. Show all events")
     print("2. Search for events")
-    print("3. Quit")
+    print("3. Delete events")
+    print("4. Edit events")
+    print("5. Cancel events")
+    print("6. Quit")
 
 
 def get_all_events(api, time_now):
@@ -185,18 +192,35 @@ def search_all_events(api, time_now, key_word):
 
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
-    return
+    return events
+
 
 def cancel_event(api, event_id):
-    edit_event(api,event_id)
-    
+    """
+           updates a given event by its corresponding event id
+
+           @param api: The build generated in get_calendar_api() function
+           @type api: googleapiclient.discovery.build
+           @param event_id: The id corresponding to the a specific event
+           @type event_id: String
+           @return: No return
+       """
+    event = api.events().get(calendarId='primary', eventId=event_id).execute()
+
+    event['status'] = "cancelled"
+
+    api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
+
 
 def print_events(events):
     if not events:
         print('No upcoming events found.')
+    num = 1
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
-        print(start, event['summary'])
+        print(num, start, event['summary'])
+        # print(event["id"])
+        num += 1
 
 
 def main():
@@ -218,6 +242,34 @@ def main():
             events = search_all_events(api, time_now, key_word)
             print_events(events)
         elif user_input == 3:
+            event_id = int(input("Select event to delete: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                delete_event(api, events[event_id - 1]["id"])
+                events = get_all_events(api, time_now)
+                print_events(events)
+        elif user_input == 4:
+            event_id = int(input("Select event to edit: "))
+            summary = int(input("Enter your summary message: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                edit_event(api, events[event_id - 1]["id"], summary)
+        elif user_input == 5:
+            event_id = int(input("Select event to canceled: "))
+            if (events == []) or (event_id < 1) or (event_id > len(events)):
+                print("Invalid input")
+                continue
+            else:
+                # print(events[event_id - 1]["id"])
+                cancel_event(api, events[event_id - 1]["id"])
+                print("Event has been cancelled")
+        elif user_input == 6:
             user_exit = True
         # print(events)
 
