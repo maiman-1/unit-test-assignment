@@ -107,6 +107,61 @@ def add_two_years(time_now: int) -> datetime:
     return time_now.replace(time_now.year + num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
 
+def get_all_events(api, time_now):
+    """
+    Retrieve all events between 5 years ago and 2 years from now
+
+    @param api: Api for calendar (Google) used by the user
+    @type api:  googleapiclient.discovery.build
+    @param time_now: The current time in utc format
+    @type time_now: datetime class object
+    @return: void: Will print all events
+    """
+    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
+    starting_time = sub_five_years(time_now)
+    end_time = add_two_years(time_now)
+    key_word = ""
+
+    events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
+    return events
+
+
+def get_past_events(api, time_now):
+    """
+    Retrieve all events from 5 years ago
+
+    @param api: Api for calendar (Google) used by the user
+    @type api:  googleapiclient.discovery.build
+    @param time_now: The current time in utc format
+    @type time_now: datetime class object
+    @return: void: Will print all events
+    """
+    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
+    starting_time = sub_five_years(time_now)
+    key_word = ""
+
+    events = get_upcoming_events(api, starting_time, 10, time_now, key_word)
+    return events
+
+
+def get_future_events(api, time_now):
+    """
+    Retrieve all events from 5 years ago
+
+    @param api: Api for calendar (Google) used by the user
+    @type api:  googleapiclient.discovery.build
+    @param time_now: The current time in utc format
+    @type time_now: datetime class object
+    @return: void: Will print all events
+    """
+    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
+    end_time = add_two_years(time_now)
+    key_word = ""
+
+    events = get_upcoming_events(api, time_now, 10, end_time, key_word)
+    return events
+
+
 def delete_event(api, event_id):
     """
         Deletes a given event by its correspodning event id
@@ -137,43 +192,6 @@ def edit_event(api, event_id, summary):
     api.events().update(calendarId='primary', eventId=event_id, body=event)
 
 
-# Main Menu Function
-def print_menu() -> None:
-    """
-    Display menu to be used to guide user to use
-
-    :pre: Console is blank
-    :Post: Console displays the list of user Items
-    :Complexity: O(1)
-    """
-    print("\nMenu:")
-    print("1. Show all events")
-    print("2. Search for events")
-    print("3. Delete events")
-    print("4. Edit events")
-    print("5. Cancel events")
-    print("6. Quit")
-
-
-def get_all_events(api, time_now):
-    """
-    Retrieve all events between 5 years ago and 2 years from now
-
-    @param api: Api for calendar (Google) used by the user
-    @type api:  googleapiclient.discovery.build
-    @param time_now: The current time in utc format
-    @type time_now: datetime class object
-    @return: void: Will print all events
-    """
-    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
-    starting_time = sub_five_years(time_now)
-    end_time = add_two_years(time_now)
-    key_word = ""
-
-    events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
-    return events
-
-
 def search_all_events(api, time_now, key_word):
     """
     Retrieve all events between 5 years ago and 2 years from now with specific key_word
@@ -193,6 +211,13 @@ def search_all_events(api, time_now, key_word):
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
     return events
+
+
+#
+# def navigate_events_year(api, time_now, time_end):
+#         events = get_upcoming_events(api, time_now, 10, time_end, key_word)
+#         return events
+#
 
 
 def cancel_event(api, event_id):
@@ -223,6 +248,27 @@ def print_events(events):
         num += 1
 
 
+# Main Menu Function
+def print_menu() -> None:
+    """
+    Display menu to be used to guide user to use
+
+    :pre: Console is blank
+    :Post: Console displays the list of user Items
+    :Complexity: O(1)
+    """
+    print("\nMenu:")
+    print("1. Show all events")
+    print("2. Search for events")
+    print("3. Delete events")
+    print("4. Edit events")
+    print("5. Cancel events")
+    print("6. Display events from the past")
+    print("7. Display events in the future")
+    print("8. Navigate events")
+    print("9. Quit")
+
+
 def main():
     api = get_calendar_api()
     time_now = datetime.datetime.utcnow()
@@ -234,13 +280,16 @@ def main():
     while not user_exit:
         print_menu()
         user_input = int(input("Input option: "))
+
         if user_input == 1:
             events = get_all_events(api, time_now)
             print_events(events)
+
         elif user_input == 2:
             key_word = input("Key words for event: ")
             events = search_all_events(api, time_now, key_word)
             print_events(events)
+
         elif user_input == 3:
             event_id = int(input("Select event to delete: "))
             if (events == []) or (event_id < 1) or (event_id > len(events)):
@@ -251,6 +300,7 @@ def main():
                 delete_event(api, events[event_id - 1]["id"])
                 events = get_all_events(api, time_now)
                 print_events(events)
+
         elif user_input == 4:
             event_id = int(input("Select event to edit: "))
             summary = int(input("Enter your summary message: "))
@@ -260,6 +310,7 @@ def main():
             else:
                 # print(events[event_id - 1]["id"])
                 edit_event(api, events[event_id - 1]["id"], summary)
+
         elif user_input == 5:
             event_id = int(input("Select event to canceled: "))
             if (events == []) or (event_id < 1) or (event_id > len(events)):
@@ -269,7 +320,26 @@ def main():
                 # print(events[event_id - 1]["id"])
                 cancel_event(api, events[event_id - 1]["id"])
                 print("Event has been cancelled")
+
         elif user_input == 6:
+            # starting_time = time_now
+            # end_time = sub_five_years(time_now)
+            # key_word = ""
+            # events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
+            # print_events(events)
+            events = get_past_events(api, time_now)
+            print_events(events)
+
+        elif user_input == 7:
+            events = get_future_events(api, time_now)
+            print_events(events)
+
+        elif user_input == 8:
+            year_choice = int(input("Input a year: "))
+            month_choice = int(input("Input a month: "))
+            day_choice = int(input("input a day"))
+
+        elif user_input == 9:
             user_exit = True
         # print(events)
 
