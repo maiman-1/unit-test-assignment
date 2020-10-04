@@ -107,7 +107,7 @@ def add_two_years(time_now: int) -> datetime:
     return time_now.replace(time_now.year + num_years).isoformat() + 'Z'  # 'Z' indicates UTC time
 
 
-def get_all_events(api, time_now):
+def get_all_events(api, time_now: int):
     """
     Retrieve all events between 5 years ago and 2 years from now
 
@@ -126,40 +126,33 @@ def get_all_events(api, time_now):
     return events
 
 
-def get_past_events(api, time_now):
+def navigate_events(api, time_year: int, time_month: int, time_day: int):
     """
-    Retrieve all events from 5 years ago
+    Navigate all events at a date-time selected by user.
 
     @param api: Api for calendar (Google) used by the user
     @type api:  googleapiclient.discovery.build
-    @param time_now: The current time in utc format
-    @type time_now: datetime class object
-    @return: void: Will print all events
+    @param time_year: a year entered by user
+    @type time_year: integer
+    @param time_month: a month entered by user
+    @type time_month: integer
+    @param time_day: a day entered by user
+    @type time_day: integer
     """
-    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
-    starting_time = sub_five_years(time_now)
-    key_word = ""
 
-    events = get_upcoming_events(api, starting_time, 10, time_now, key_word)
-    return events
+    # Convert it to a string type
+    str_year = str(time_year)
+    str_month = str(time_month)
+    str_day = str(time_day)
 
+    # Concatenate the strings to properly be fitted in the format
+    starting_time = str_year + "-" + str_month + "-" + str_day + "T00:00:00.0000" + 'Z'
+    time_Max = str_year + "-" + str_month + "-" + str_day + "T23:59:59.0000" + 'Z'
 
-def get_future_events(api, time_now):
-    """
-    Retrieve all events from 5 years ago
-
-    @param api: Api for calendar (Google) used by the user
-    @type api:  googleapiclient.discovery.build
-    @param time_now: The current time in utc format
-    @type time_now: datetime class object
-    @return: void: Will print all events
-    """
-    # starting_time is formatted as (YYYY-MM-DDT*HH:MM:SS), T* is separator between time and date
-    end_time = add_two_years(time_now)
-    key_word = ""
-
-    events = get_upcoming_events(api, time_now, 10, end_time, key_word)
-    return events
+    events_result = api.events().list(calendarId='primary', timeMin=starting_time, timeMax=time_Max,
+                                      maxResults=10, singleEvents=True, q="",
+                                      orderBy='startTime').execute()
+    return events_result.get('items', [])
 
 
 def delete_event(api, event_id):
@@ -263,10 +256,8 @@ def print_menu() -> None:
     print("3. Delete events")
     print("4. Edit events")
     print("5. Cancel events")
-    print("6. Display events from the past")
-    print("7. Display events in the future")
-    print("8. Navigate events")
-    print("9. Quit")
+    print("6. Navigate events")
+    print("7. Quit")
 
 
 def main():
@@ -322,24 +313,26 @@ def main():
                 print("Event has been cancelled")
 
         elif user_input == 6:
-            # starting_time = time_now
-            # end_time = sub_five_years(time_now)
-            # key_word = ""
-            # events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
-            # print_events(events)
-            events = get_past_events(api, time_now)
+            year_choice = int(input("Input a year: "))
+            month_choice = int(input("Input a month: "))
+            day_choice = int(input("input a day: "))
+
+            if month_choice > 12 or month_choice < 1:
+                print("Invalid input for months")
+                if month_choice == 11 or month_choice == 9 or month_choice == 6 or month_choice == 4:
+                    if day_choice > 30:
+                        print("Invalid input for a day. Nov, September, June, or April do not have more than 30 days.")
+
+            if year_choice < 0:
+                print("Invalid input for years")
+
+            if day_choice < 1 or day_choice > 31:
+                print("Invalid input for days")
+
+            events = navigate_events(api, year_choice, month_choice, day_choice)
             print_events(events)
 
         elif user_input == 7:
-            events = get_future_events(api, time_now)
-            print_events(events)
-
-        elif user_input == 8:
-            year_choice = int(input("Input a year: "))
-            month_choice = int(input("Input a month: "))
-            day_choice = int(input("input a day"))
-
-        elif user_input == 9:
             user_exit = True
         # print(events)
 
