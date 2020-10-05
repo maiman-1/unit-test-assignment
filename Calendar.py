@@ -178,12 +178,14 @@ def edit_event(api, event_id, summary):
         @type event_id: String
         @return: No return
     """
-    event = api.events().get(calendarId='primary', eventId='eventId').execute()
+    event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
     event['summary'] = summary
+    # print(event['summary'])
 
     api.events().update(calendarId='primary', eventId=event_id, body=event)
-
+    # event2 = api.events().get(calendarId='primary', eventId=event_id).execute()
+    # print(event2['summary'])
 
 def search_all_events(api, time_now, key_word):
     """
@@ -294,13 +296,13 @@ def main():
 
         elif user_input == 4:
             event_id = int(input("Select event to edit: "))
-            summary = int(input("Enter your summary message: "))
+            summary = input("Enter your summary message: ")
             if (events == []) or (event_id < 1) or (event_id > len(events)):
                 print("Invalid input")
                 continue
             else:
                 # print(events[event_id - 1]["id"])
-                edit_event(api, events[event_id - 1]["id"], summary)
+                edit_event(api, events[event_id - 1]['id'], summary)
 
         elif user_input == 5:
             event_id = int(input("Select event to canceled: "))
@@ -309,7 +311,7 @@ def main():
                 continue
             else:
                 # print(events[event_id - 1]["id"])
-                cancel_event(api, events[event_id - 1]["id"])
+                cancel_event(api, events[event_id - 1]['id'])
                 print("Event has been cancelled")
 
         elif user_input == 6:
@@ -335,7 +337,6 @@ def main():
         elif user_input == 7:
             user_exit = True
         # print(events)
-
 
 if __name__ == "__main__":  # Prevents the main() function from being called by the test suite runner
     main()

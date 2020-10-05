@@ -1,7 +1,8 @@
 import unittest
 from unittest.mock import Mock
-import Calendar
 # Add other imports here if needed
+import Calendar
+import datetime
 
 
 class CalendarTest(unittest.TestCase):
@@ -20,6 +21,16 @@ class CalendarTest(unittest.TestCase):
         self.assertEqual(kwargs['maxResults'], num_events)
 
     # Add more test cases here
+    def test_edit_events(self):
+        api = Calendar.get_calendar_api()
+        time_now = datetime.datetime.utcnow()
+        option=6
+
+        events = Calendar.get_all_events(api, time_now)
+        Calendar.edit_event(api,events[option-1]['id'],'I made changes to this event')
+        self.assertEqual(
+            events[option - 1]['summary'],'I made changes to this event')
+
 
 def main():
     # Create the test suite from the cases above.
