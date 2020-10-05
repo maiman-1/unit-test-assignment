@@ -4,7 +4,6 @@ from unittest.mock import Mock
 import Calendar
 import datetime
 
-
 class CalendarTest(unittest.TestCase):
     # This test tests number of upcoming events.
     def test_get_upcoming_events_number(self):
@@ -24,13 +23,31 @@ class CalendarTest(unittest.TestCase):
     def test_edit_events(self):
         api = Calendar.get_calendar_api()
         time_now = datetime.datetime.utcnow()
-        option=6
+        option = 6
 
         events = Calendar.get_all_events(api, time_now)
-        Calendar.edit_event(api,events[option-1]['id'],'I made changes to this event')
+        Calendar.edit_event(api, events[option - 1]['id'], 'I made changes to this event')
         self.assertEqual(
-            events[option - 1]['summary'],'I made changes to this event')
+            'I made changes to this event', events[option - 1]['summary'])
 
+    def test_delete_events(self):
+        """
+        This test deletes an event and check if it is still on the calender.
+        """
+        api = Calendar.get_calendar_api()
+        time_now = datetime.datetime.utcnow()
+        option = 7
+
+        events = Calendar.get_all_events(api, time_now)
+        deleted_Event = events[option - 1]['id']
+        Calendar.delete_event(api, events[option - 1]['id'])
+        """
+        After the deletion of an event, gets the updated events from the calender.
+        Searches if the deleted event is still on the calender
+        """
+        updated_events = Calendar.get_all_events(api, time_now)
+        for event in updated_events:
+            self.assertNotEqual(deleted_Event, event['id'])
 
 def main():
     # Create the test suite from the cases above.
