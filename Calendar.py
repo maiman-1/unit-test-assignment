@@ -183,7 +183,7 @@ def edit_event(api, event_id, summary):
     event['summary'] = summary
     # print(event['summary'])
 
-    api.events().update(calendarId='primary', eventId=event_id, body=event)
+    api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
     # event2 = api.events().get(calendarId='primary', eventId=event_id).execute()
     # print(event2['summary'])
 
