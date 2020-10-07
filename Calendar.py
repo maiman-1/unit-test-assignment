@@ -187,6 +187,7 @@ def edit_event(api, event_id, summary):
     # event2 = api.events().get(calendarId='primary', eventId=event_id).execute()
     # print(event2['summary'])
 
+
 def search_all_events(api, time_now, key_word):
     """
     Retrieve all events between 5 years ago and 2 years from now with specific key_word
@@ -240,6 +241,25 @@ def print_events(events):
         start = event['start'].get('dateTime', event['start'].get('date'))
         print(num, start, event['summary'])
         # print(event["id"])
+        num += 1
+
+
+def print_events_detail(events):
+    if not events:
+        print('No upcoming events found.')
+    num = 1
+    # python Calendar.py
+    for event in events:
+        print(f"This event is created on: {event['created']} \n"
+              f"A list of creators' email address: {event['creator']['email']} \n"
+              f"A list of organisers' email address: {event['organizer']['email']} \n"
+              f"A list of attendees' email address:{event['attendees'][0]['email']} \n"
+              f"Description: {event['description']} \n"
+              f"Location: {event['location']} \n"
+
+              # f"A list of attendees: {event['attendees'][0]['displayName']}"
+              # f"A number of additional guests: {event['attendees'][0]['additionalGuests']}"
+              )
         num += 1
 
 
@@ -333,10 +353,12 @@ def main():
 
             events = navigate_events(api, year_choice, month_choice, day_choice)
             print_events(events)
+            print_events_detail(events)
 
         elif user_input == 7:
             user_exit = True
         # print(events)
+
 
 if __name__ == "__main__":  # Prevents the main() function from being called by the test suite runner
     main()
