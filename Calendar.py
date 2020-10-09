@@ -181,11 +181,9 @@ def edit_event(api, event_id, summary):
     event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
     event['summary'] = summary
-    # print(event['summary'])
 
     api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
-    # event2 = api.events().get(calendarId='primary', eventId=event_id).execute()
-    # print(event2['summary'])
+
 
 
 def search_all_events(api, time_now, key_word):
@@ -228,7 +226,7 @@ def cancel_event(api, event_id):
        """
     event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
-    event['status'] = "cancelled"
+    event['status'] = 'cancelled'
 
     api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
 

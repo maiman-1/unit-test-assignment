@@ -22,13 +22,14 @@ class CalendarTest(unittest.TestCase):
     def test_edit_events(self):
         mock_api = Calendar.get_calendar_api()
         time_now = datetime.datetime.utcnow()
-        option = 6
+        option = 4
 
         events = Calendar.get_all_events(mock_api, time_now)
         Calendar.edit_event(mock_api, events[option - 1]['id'], 'I made changes to this event')
         # print(events[option - 1]['summary'])
+        updated_events = Calendar.get_all_events(mock_api, time_now)
         self.assertEqual(
-            'I made changes to this event', events[option - 1]['summary'])
+            'I made changes to this event', updated_events[option - 1]['summary'])
 
     def test_delete_events(self):
         """
@@ -56,20 +57,22 @@ class CalendarTest(unittest.TestCase):
         """
         mock_api = Calendar.get_calendar_api()
         time_now = datetime.datetime.utcnow()
-        option = 2
+        option = 5
 
         events = Calendar.get_all_events(mock_api, time_now)
 
-        canceled_event = events[option - 1]
         canceled_event_id = events[option - 1]['id']
         Calendar.cancel_event(mock_api, canceled_event_id)
+
+        updated_events = Calendar.get_all_events(mock_api, time_now)
+        changed_event = updated_events[option - 1]
 
         """
         After the cancellation of an event, obtain the updated calendar.
         Tests if Cancelled Event is still on the calendar
         """
         self.assertEqual(
-            'cancelled', canceled_event['status'])  # It prints out confirmed.. I think there is something wrong with
+            'cancelled', changed_event['status'])  # It prints out confirmed.. I think there is something wrong with
         # the functionality
         # AssertionError: 'cancelled' != 'confirmed'
 
