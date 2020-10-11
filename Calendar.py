@@ -7,11 +7,9 @@
 # When app is run for the first time, you will need to sign in using your Monash student account.
 # Allow the "View your calendars" permission request.
 
-
 # Students must have their own api key
 # No test cases needed for authentication, but authentication may required for running the app very first time.
 # http://googleapis.github.io/google-api-python-client/docs/dyn/calendar_v3.html
-
 
 # Code adapted from https://developers.google.com/calendar/quickstart/python
 from __future__ import print_function
@@ -185,7 +183,6 @@ def edit_event(api, event_id, summary):
     api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
 
 
-
 def search_all_events(api, time_now, key_word):
     """
     Retrieve all events between 5 years ago and 2 years from now with specific key_word
@@ -205,13 +202,6 @@ def search_all_events(api, time_now, key_word):
     events = get_upcoming_events(api, starting_time, 10, end_time, key_word)
 
     return events
-
-
-#
-# def navigate_events_year(api, time_now, time_end):
-#         events = get_upcoming_events(api, time_now, 10, time_end, key_word)
-#         return events
-#
 
 
 def cancel_event(api, event_id):
@@ -246,18 +236,55 @@ def print_events_detail(events):
     if not events:
         print('No upcoming events found.')
     num = 1
-    # python Calendar.py
+    output = ""
     for event in events:
-        print(f"This event is created on: {event['created']} \n"
-              f"A list of creators' email address: {event['creator']['email']} \n"
-              f"A list of organisers' email address: {event['organizer']['email']} \n"
-              f"A list of attendees' email address:{event['attendees'][0]['email']} \n"
-              f"Description: {event['description']} \n"
-              f"Location: {event['location']} \n"
+        if event['created']:
+            output += f"This event is created on: {event['created']} \n"
+        else:
+            output += "There is no creation date \n"
 
-              # f"A list of attendees: {event['attendees'][0]['displayName']}"
-              # f"A number of additional guests: {event['attendees'][0]['additionalGuests']}"
-              )
+        if event['creator']['email']:
+            output += f"A list of creators' email address: \n {event['creator']['email']} \n"
+        else:
+            output += "There is no creators' email address \n"
+
+        if event['organizer']['email']:
+            output += "A list of organisers email address: \n"
+            output += f"{event['organizer'].get('email')} \n"
+        else:
+            output += "There is no organisers' email address \n"
+
+        if event['attendees']:
+            output += "A list of attendees email address: \n"
+            for i in range(len(event['attendees'])):
+                output += f"{i}: "
+                output += f"{event['attendees'][i].get('email')} \n"
+        else:
+            output += "There is no attendees' email address \n"
+
+        if event['description']:
+            output += f"Description: {event['description']} \n"
+        else:
+            output += "There is no description \n"
+
+        if event['location']:
+            output += f"Location: {event['location']} \n"
+        else:
+            output += "There is no location \n"
+
+        num += 1
+
+    return print(output)
+
+def print_reminder_detail(events):
+    if not events:
+        print('No upcoming events found.')
+    num = 1
+    for event in events:
+        if event['reminders'].get('overrides'):
+            return print(event['reminders'].get('overrides')[0].get('minutes'))
+        else:
+            return print("No reminder is set")
         num += 1
 
 
@@ -352,10 +379,10 @@ def main():
             events = navigate_events(api, year_choice, month_choice, day_choice)
             print_events(events)
             print_events_detail(events)
+            print_reminder_detail(events)
 
         elif user_input == 7:
             user_exit = True
-        # print(events)
 
 
 if __name__ == "__main__":  # Prevents the main() function from being called by the test suite runner
