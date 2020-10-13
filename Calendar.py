@@ -155,14 +155,13 @@ def navigate_events(api, time_year: int, time_month: int, time_day: int):
 
 def delete_event(api, event_id):
     """
-        Deletes a given event by its correspodning event id
-
-        @param api: The build generated in get_calendar_api() function
-        @type api: googleapiclient.discovery.build
-        @param event_id: The id corresponding to the a specific event
-        @type event_id: String
-        @return: No return
-        """
+    Deletes a given event by its correspodning event id
+    @param api: The build generated in get_calendar_api() function
+    @type api: googleapiclient.discovery.build
+    @param event_id: The id corresponding to the a specific event
+    @type event_id: String
+    @return: No return
+    """
     api.events().delete(calendarId='primary', eventId=event_id).execute()
 
 
@@ -206,14 +205,13 @@ def search_all_events(api, time_now, key_word):
 
 def cancel_event(api, event_id):
     """
-           updates a given event by its corresponding event id
-
-           @param api: The build generated in get_calendar_api() function
-           @type api: googleapiclient.discovery.build
-           @param event_id: The id corresponding to the a specific event
-           @type event_id: String
-           @return: No return
-       """
+    updates a given event by its corresponding event id
+    @param api: The build generated in get_calendar_api() function
+    @type api: googleapiclient.discovery.build
+    @param event_id: The id corresponding to the a specific event
+    @type event_id: String
+    @return: No return
+    """
     event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
     event['status'] = 'cancelled'
@@ -222,6 +220,12 @@ def cancel_event(api, event_id):
 
 
 def print_events(events):
+    """
+    prints an array that holds a series of events
+    @param events: an array of events
+    @type events: array
+    @return: No return
+    """
     if not events:
         print('No upcoming events found.')
     num = 1
@@ -233,50 +237,64 @@ def print_events(events):
 
 
 def print_events_detail(events):
+    """
+    prints a detail of each event
+    @param events: an array of events
+    @type events: array
+    @return: string
+    """
     if not events:
         print('No upcoming events found.')
     num = 1
     output = ""
     for event in events:
-        if event['created']:
+        try:
             output += f"This event is created on: {event['created']} \n"
-        else:
+        except KeyError:
             output += "There is no creation date \n"
 
-        if event['creator']['email']:
-            output += f"A list of creators' email address: \n {event['creator']['email']} \n"
-        else:
+        try:
+            output += "A list of organisers email address: \n"
+            output += f"{event['creator']['email']} \n"
+        except KeyError:
             output += "There is no creators' email address \n"
 
-        if event['organizer']['email']:
+        try:
             output += "A list of organisers email address: \n"
             output += f"{event['organizer'].get('email')} \n"
-        else:
+        except KeyError:
             output += "There is no organisers' email address \n"
 
-        if event['attendees']:
+        try:
             output += "A list of attendees email address: \n"
             for i in range(len(event['attendees'])):
                 output += f"{i}: "
                 output += f"{event['attendees'][i].get('email')} \n"
-        else:
+        except KeyError:
             output += "There is no attendees' email address \n"
 
-        if event['description']:
+        try:
             output += f"Description: {event['description']} \n"
-        else:
+        except KeyError:
             output += "There is no description \n"
 
-        if event['location']:
+        try:
             output += f"Location: {event['location']} \n"
-        else:
+        except KeyError:
             output += "There is no location \n"
 
         num += 1
 
     return print(output)
 
+
 def print_reminder_detail(events):
+    """
+    prints a detail of a reminder
+    @param events: an array of events
+    @type events: array
+    @return: String
+    """
     if not events:
         print('No upcoming events found.')
     num = 1
@@ -322,6 +340,8 @@ def main():
         if user_input == 1:
             events = get_all_events(api, time_now)
             print_events(events)
+            print_reminder_detail(events)
+
 
         elif user_input == 2:
             key_word = input("Key words for event: ")
@@ -335,9 +355,15 @@ def main():
                 continue
             else:
                 # print(events[event_id - 1]["id"])
+                if events[event_id - 1]['reminders'].get('overrides'):
+                    events[event_id - 1]['reminders']['overrides'] = None
+                else:
+                    return print("No reminder is set")
+
                 delete_event(api, events[event_id - 1]["id"])
                 events = get_all_events(api, time_now)
                 print_events(events)
+
 
         elif user_input == 4:
             event_id = int(input("Select event to edit: "))
@@ -348,6 +374,7 @@ def main():
             else:
                 # print(events[event_id - 1]["id"])
                 edit_event(api, events[event_id - 1]['id'], summary)
+
 
         elif user_input == 5:
             event_id = int(input("Select event to canceled: "))
