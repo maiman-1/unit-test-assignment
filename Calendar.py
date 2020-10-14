@@ -22,6 +22,7 @@ from google.auth.transport.requests import Request
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
+DEFAULT_REMINDER = 0
 
 
 def get_calendar_api():
@@ -73,7 +74,7 @@ def get_upcoming_events(api, starting_time, number_of_events, time_Max, key_Word
     events_result = api.events().list(calendarId='primary', timeMin=starting_time, timeMax=time_Max,
                                       maxResults=number_of_events, singleEvents=True, q=key_Word,
                                       orderBy='startTime').execute()
-    return events_result.get('items', [])
+    return events_result.get("items", [])
 
 
 # Add your methods here.
@@ -143,14 +144,14 @@ def navigate_events(api, time_year: int, time_month: int, time_day: int):
     str_month = str(time_month)
     str_day = str(time_day)
 
+    num_result = 10
+    key_word = ""
+
     # Concatenate the strings to properly be fitted in the format
     starting_time = str_year + "-" + str_month + "-" + str_day + "T00:00:00.0000" + 'Z'
     time_Max = str_year + "-" + str_month + "-" + str_day + "T23:59:59.0000" + 'Z'
 
-    events_result = api.events().list(calendarId='primary', timeMin=starting_time, timeMax=time_Max,
-                                      maxResults=10, singleEvents=True, q="",
-                                      orderBy='startTime').execute()
-    return events_result.get('items', [])
+    return get_upcoming_events(api, starting_time, num_result, time_Max, key_word)
 
 
 def delete_event(api, event_id):
@@ -165,7 +166,7 @@ def delete_event(api, event_id):
     api.events().delete(calendarId='primary', eventId=event_id).execute()
 
 
-def edit_event(api, event_id, summary):
+def edit_event(api, event_id, summary, editEvent: bool):
     """
         updates a given event by its corresponding event id
 
@@ -173,11 +174,24 @@ def edit_event(api, event_id, summary):
         @type api: googleapiclient.discovery.build
         @param event_id: The id corresponding to the a specific event
         @type event_id: String
+        @param editEvent: [True/False] - Whether the user would like to edit the edits or not
         @return: No return
     """
     event = api.events().get(calendarId='primary', eventId=event_id).execute()
 
     event['summary'] = summary
+
+    reminder_int = 0
+    if editEvent == True:
+        event['reminders']["useDefault"] = False
+        reminder_int = int(input("Input new reminder time in minutes: "))
+        event['reminders']['overrides'] = []
+        event['reminders']['overrides'].append(
+            {
+                "method": "popup",
+                "minutes": reminder_int
+            }
+        )
 
     api.events().update(calendarId='primary', eventId=event_id, body=event).execute()
 
@@ -231,7 +245,15 @@ def print_events(events):
     num = 1
     for event in events:
         start = event['start'].get('dateTime', event['start'].get('date'))
-        print(num, start, event['summary'])
+        reminder = event['reminders']
+        if event['reminders']["useDefault"]:
+            reminder = str(DEFAULT_REMINDER) + " minutes before"
+        elif not event['reminders']['useDefault']:
+            try:
+                reminder = str(event['reminders']['overrides'][0]['minutes']) + " minutes before"
+            except:
+                continue
+        print("Events: ", num, start, event['summary'], "| Reminder: ", reminder)
         # print(event["id"])
         num += 1
 
@@ -329,6 +351,9 @@ def main():
     api = get_calendar_api()
     time_now = datetime.datetime.utcnow()
 
+    calendarLists = api.calendarList().get(calendarId='primary').execute()
+    DEFAULT_REMINDER = calendarLists["defaultReminders"][0]["minutes"]
+
     # Show the main menu:
     user_exit = False
     # Global events variable
@@ -340,7 +365,6 @@ def main():
         if user_input == 1:
             events = get_all_events(api, time_now)
             print_events(events)
-            print_reminder_detail(events)
 
 
         elif user_input == 2:
@@ -373,7 +397,14 @@ def main():
                 continue
             else:
                 # print(events[event_id - 1]["id"])
-                edit_event(api, events[event_id - 1]['id'], summary)
+                response = input("Would you like to change the reminders? [Y/N] ")
+                while response.upper() != "Y" and response.upper() != "N":
+                    response = input("Would you like to change the reminders? [Y/N] ")
+                if response.upper() == "Y":
+                    response = True
+                elif response.upper() == "N":
+                    response = False
+                edit_event(api, events[event_id - 1]['id'], summary, response)
 
 
         elif user_input == 5:
@@ -406,7 +437,6 @@ def main():
             events = navigate_events(api, year_choice, month_choice, day_choice)
             print_events(events)
             print_events_detail(events)
-            print_reminder_detail(events)
 
         elif user_input == 7:
             user_exit = True

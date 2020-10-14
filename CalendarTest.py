@@ -30,18 +30,57 @@ class CalendarTest(unittest.TestCase):
 
     # Add more test cases here
     def test_edit_events(self):
-        mock_api = Calendar.get_calendar_api()
+        mock_api = MagicMock()
+        time = MagicMock()
 
-        a_event = mock_api.events().quickAdd(
-            calendarId='primary',
-            text='Appointment at Somewhere on June 3rd 10am-10:25am').execute()
+        # Simulate retrieving all events
+        events = Calendar.get_all_events(mock_api, time)
+        mock_api.events.return_value.list.return_value.execute.return_value = {
+            "items": [
+                {
+                    "id": "ABCDEFIGHIT",
+                    "summary": "test",
+                    "start": {
+                        "dateTime": "2019-06-03T02:00:00+09:00"
+                    },
+                    "end": {
+                        "dateTime": "2019-06-03T02:45:00+09:00"
+                    },
+                },
+                {
+                    "id": "ABCDEFIGHIG",
+                    "summary": "test",
+                    "start": {
+                        "dateTime": "2019-06-03T02:00:00+09:00"
+                    },
+                    "end": {
+                        "dateTime": "2019-06-03T02:45:00+09:00"
+                    },
+                },
+            ]
+        }
 
-        Calendar.edit_event(mock_api, a_event['id'], 'I made changes to this event')
+        # get_all_events is tested in a different method. no need to test again
 
-        event = mock_api.events().get(calendarId='primary', eventId=a_event['id']).execute()
+        # Set the return values for events
+        events = mock_api.events().list().execute()["items"]
+        option = 1
+        change = 'I made changes to this event'
+        Calendar.edit_event(mock_api, events[option-1]['id'], change, False)
 
-        self.assertEqual(
-            'I made changes to this event', event['summary'])
+        # Predict the changed events
+        predicted_event = events[option-1]
+
+        # Check if the function is called:
+        args, kwargs = mock_api.events.return_value.update.call_args_list[0]
+        self.assertEqual(kwargs['eventId'], predicted_event['id'])
+
+        # If updated, update the events
+        events[option-1]["summary"] = change
+
+        event = events[option-1]
+
+        self.assertEqual(change, event['summary'])
 
         # Delete the event after finishing
         Calendar.delete_event(mock_api, event['id'])
@@ -56,6 +95,35 @@ class CalendarTest(unittest.TestCase):
         a_event = mock_api.events().quickAdd(
             calendarId='primary',
             text='Appointment at Somewhere on June 3rd 10am-10:25am').execute()
+
+        """
+        a_event structure
+        
+        a_event = {
+            "kind": 'calendar#event',
+            "etag": ""3205424328208000"",
+            "id": "f4aa09cj3b0srnas27pdv6af40", (Randomized)
+            "status": "confirmed",
+            "htmlLink": 'https://www.google.com/calendar/event?eid=ZjRhYTA5Y2ozYjBzcm5hczI3cGR2NmFmNDAgbXNoYTAwNDZAc3R1ZGVudC5tb25hc2guZWR1'
+            "created": '2020-10-14T07:56:04.000Z',
+            'updated': '2020-10-14T07:56:04.104Z',
+            'summary': 'Appointment at Somewhere'
+            'location': "Somewhere",
+            creator: {
+                'email' : 'abcdeg@gmail.com'
+                'self': True
+            },
+            'organizer: {
+                'email' : 'abcdeg@gmail.com'
+                'self': True
+            },
+            'start': {'dateTime': '2021-06-03T10:00:00+08:00'},
+            'end': {'dateTime': '2021-06-03T10:25:00+08:00'},
+            'iCalUID': 'f4aa09cj3b0srnas27pdv6af40@google.com'
+            'sequence': 0
+            'reminders' = {'useDefault': True}
+            
+        """
 
         Calendar.delete_event(mock_api, a_event['id'])
         """
