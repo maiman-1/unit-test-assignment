@@ -25,14 +25,7 @@ Test strategy:
 __User Story 3__\
 Description: As a user, I can navigate through different days, months, and years in the calendar so that I can view the details of events. For example, if the year 2019 is selected, all eventsand reminders (and any other information associated to the event) will be shown. This means on selecting the specific event or reminder I can see the detailed information.
 
-Test strategy:
-1. Will be tested in the test_get_upcoming_events_number method.
-2. Using patch, the api for the google calendar api is mocked.
-3. Set the time to be used in the function to obtain the event to the time on the local device
-4. Call Calendar.navigate_events
-5. Set assert to see if the function is called
-6. Set the function to see if the time_Max and starting_time returned is the same as set
-
+Test Strategy:
 
 __User Story 4__\
 Description: As a user, I can search events and reminders using different key words.
