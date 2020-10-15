@@ -40,13 +40,31 @@ __User Story 5__\
 Description: 5.As a user, I can delete events and reminders. 
 
 Test Strategy:
+1. Will be tested in test_delete_events method.
+2. Using Calendar.api and time now a dummy event is added using the mock_api.events().quickAdd() method
+3. the Calendar.delete_event is then called to delete the dummy event from the calendar
+4. Using the Calendar.api and the time now to retrieve the updated events
+5. The updated events is compared to see if the deleted event is deleted by using assertNotEqual
 
 __User Story 6__\
 Description: As a user, I can edit events and reminders.
 
 Test Strategy: 
+1. Mock api and time is used with Calendar.get_all_events to simulate retrieving the events
+2. The return values for the event is set
+3. The changed event is predicted by events[option-1]
+4. mock_api.events.return_value.update.call_args_list[0] is called to retrieve the args, kwargs
+5. Check if the function Calendar.edit_event() is called by comparing self.assertEqual(kwargs['eventId'], predicted_event['id'])
+6. The edited event is then check if it is udpated to the calendar by comparing the events['summary'] and the updated events['summary']
+7. The event is then deleted using Calendar.delete_event(mock_api, event['id'])
 
 __User Story 7__\
 Description: As a user, I can cancel events and reminders
 
 Test Strategy:
+1. Will be tested in test_cancel_events method
+2. Using Calendar.api and time now a dummy event is added using the mock_api.events().quickAdd() method
+3. The Calendar.cancel_event(mock_api, a_event['id']) method is called to cancel the dummy event
+4. The updated calendar is then called using Calendar.get_all_events(mock_api, time_now)
+5. From the updated calendar the cancelled event is the check if it is still on the calendar
+
