@@ -310,24 +310,6 @@ def print_events_detail(events):
     return print(output)
 
 
-def print_reminder_detail(events):
-    """
-    prints a detail of a reminder
-    @param events: an array of events
-    @type events: array
-    @return: String
-    """
-    if not events:
-        print('No upcoming events found.')
-    num = 1
-    for event in events:
-        if event['reminders'].get('overrides'):
-            return print(event['reminders'].get('overrides')[0].get('minutes'))
-        else:
-            return print("No reminder is set")
-        num += 1
-
-
 # Main Menu Function
 def print_menu() -> None:
     """

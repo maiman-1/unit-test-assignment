@@ -6,11 +6,52 @@ import datetime
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
+import io
+import sys
 
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly', 'https://www.googleapis.com/auth/calendar.events']
 
 
 class CalendarTest(unittest.TestCase):
+
+    def setUp(self) -> None:
+        self.mock_api = MagicMock()
+        self.time = MagicMock()
+
+        # Simulate retrieving all events
+        self.mock_api.events.return_value.list.return_value.execute.return_value = [
+            {
+                "id": "ABCDEFIGHIT",
+                "summary": "test",
+                "start": {
+                    "dateTime": "2019-06-03T02:00:00+09:00"
+                },
+                "end": {
+                    "dateTime": "2019-06-03T02:45:00+09:00"
+                },
+                "reminders": {
+                    "useDefault": True
+                }
+            },
+            {
+                "id": "ABCDEFIGHIG",
+                "summary": "test",
+                "start": {
+                    "dateTime": "2019-06-03T02:00:00+09:00"
+                },
+                "end": {
+                    "dateTime": "2019-06-03T02:45:00+09:00"
+                },
+                "reminders": {
+                    "useDefault": True
+                }
+            },
+        ]
+
+        # get_all_events is tested in a different method. no need to test again
+
+        # Set the return values for events
+        self.events = self.mock_api.events().list().execute()
 
     @patch('Calendar.get_calendar_api')
     # This test tests number of upcoming events.
@@ -29,126 +70,138 @@ class CalendarTest(unittest.TestCase):
         self.assertEqual(kwargs['timeMax'], time.replace(time.year + 2).isoformat() + 'Z')
 
     # Add more test cases here
-    def test_edit_events(self):
+    @patch('Calendar.input')
+    def test_edit_events(self, mock_input_reminders):
         mock_api = MagicMock()
         time = MagicMock()
 
         # Simulate retrieving all events
         events = Calendar.get_all_events(mock_api, time)
-        mock_api.events.return_value.list.return_value.execute.return_value = {
-            "items": [
-                {
-                    "id": "ABCDEFIGHIT",
-                    "summary": "test",
-                    "start": {
-                        "dateTime": "2019-06-03T02:00:00+09:00"
-                    },
-                    "end": {
-                        "dateTime": "2019-06-03T02:45:00+09:00"
-                    },
+        mock_api.events.return_value.list.return_value.execute.return_value = [
+            {
+                "id": "ABCDEFIGHIT",
+                "summary": "test",
+                "start": {
+                    "dateTime": "2019-06-03T02:00:00+09:00"
                 },
-                {
-                    "id": "ABCDEFIGHIG",
-                    "summary": "test",
-                    "start": {
-                        "dateTime": "2019-06-03T02:00:00+09:00"
-                    },
-                    "end": {
-                        "dateTime": "2019-06-03T02:45:00+09:00"
-                    },
+                "end": {
+                    "dateTime": "2019-06-03T02:45:00+09:00"
                 },
-            ]
-        }
+                "reminders": {
+                    "useDefault": True
+                }
+            },
+            {
+                "id": "ABCDEFIGHIG",
+                "summary": "test",
+                "start": {
+                    "dateTime": "2019-06-03T02:00:00+09:00"
+                },
+                "end": {
+                    "dateTime": "2019-06-03T02:45:00+09:00"
+                },
+                "reminders": {
+                    "useDefault": True
+                }
+            },
+        ]
 
         # get_all_events is tested in a different method. no need to test again
 
         # Set the return values for events
-        events = mock_api.events().list().execute()["items"]
+        events = mock_api.events().list().execute()
         option = 1
         change = 'I made changes to this event'
-        Calendar.edit_event(mock_api, events[option-1]['id'], change, False)
+        Calendar.edit_event(mock_api, events[option - 1]['id'], change, False)
 
         # Predict the changed events
-        predicted_event = events[option-1]
+        predicted_event = events[option - 1]
 
         # Check if the function is called:
         args, kwargs = mock_api.events.return_value.update.call_args_list[0]
         self.assertEqual(kwargs['eventId'], predicted_event['id'])
 
         # If updated, update the events
-        events[option-1]["summary"] = change
+        events[option - 1]["summary"] = change
 
-        event = events[option-1]
+        event = events[option - 1]
 
         self.assertEqual(change, event['summary'])
 
-        # Delete the event after finishing
-        Calendar.delete_event(mock_api, event['id'])
+        mock_input_reminders.side_effect = [15]
+        Calendar.edit_event(mock_api, events[option - 1]['id'], change, True)
+
+        # Predict the changed events
+        predicted_event = events[option - 1]
+
+        # Check if the function is called:
+        args, kwargs = mock_api.events.return_value.update.call_args_list[0]
+        self.assertEqual(kwargs['eventId'], predicted_event['id'])
+
+        # If updated, update the events
+        events[option - 1]["summary"] = change
+        events[option - 1]['reminders']['overrides'] = []
+        events[option - 1]['reminders']['overrides'].append(
+            {
+                "method": "popup",
+                "minutes": mock_input_reminders.side_effect
+            }
+        )
+
+        event = events[option - 1]
+
+        self.assertEqual(change, event['summary'])
 
     def test_delete_events(self):
         """
         This test deletes an event and check if it is still on the calender.
         """
-        mock_api = Calendar.get_calendar_api()
-        time_now = datetime.datetime.utcnow()
+        option = 1
 
-        a_event = mock_api.events().quickAdd(
-            calendarId='primary',
-            text='Appointment at Somewhere on June 3rd 10am-10:25am').execute()
+        # Set the return values for events
+        events = self.mock_api.events().list().execute()
+        a_event = events[option - 1];
 
-        """
-        a_event structure
-        
-        a_event = {
-            "kind": 'calendar#event',
-            "etag": ""3205424328208000"",
-            "id": "f4aa09cj3b0srnas27pdv6af40", (Randomized)
-            "status": "confirmed",
-            "htmlLink": 'https://www.google.com/calendar/event?eid=ZjRhYTA5Y2ozYjBzcm5hczI3cGR2NmFmNDAgbXNoYTAwNDZAc3R1ZGVudC5tb25hc2guZWR1'
-            "created": '2020-10-14T07:56:04.000Z',
-            'updated': '2020-10-14T07:56:04.104Z',
-            'summary': 'Appointment at Somewhere'
-            'location': "Somewhere",
-            creator: {
-                'email' : 'abcdeg@gmail.com'
-                'self': True
-            },
-            'organizer: {
-                'email' : 'abcdeg@gmail.com'
-                'self': True
-            },
-            'start': {'dateTime': '2021-06-03T10:00:00+08:00'},
-            'end': {'dateTime': '2021-06-03T10:25:00+08:00'},
-            'iCalUID': 'f4aa09cj3b0srnas27pdv6af40@google.com'
-            'sequence': 0
-            'reminders' = {'useDefault': True}
-            
-        """
+        Calendar.delete_event(self.mock_api, a_event['id'])
 
-        Calendar.delete_event(mock_api, a_event['id'])
+        # Check if the function is called:
+        self.assertEqual(
+            self.mock_api.events.return_value.delete.call_count, 1)
+        args, kwargs = self.mock_api.events.return_value.delete.call_args_list[0]
+        self.assertEqual(kwargs['eventId'], a_event['id'])
+
+        # After deleting event, events is called again
+        events = self.mock_api.events().list().execute()
+        # Set the return value for events
+        events.remove(a_event)
         """
         After the deletion of an event, gets the updated events from the calender.
         Searches if the deleted event is still on the calender
         """
-        updated_events = Calendar.get_all_events(mock_api, time_now)
-        for event in updated_events:
+        for event in events:
             self.assertNotEqual(a_event['id'], event['id'])
 
     def test_cancel_events(self):
         """
         This test cancels an event and check if its status is cancelled.
         """
-        mock_api = Calendar.get_calendar_api()
-        time_now = datetime.datetime.utcnow()
+        option = 1
 
-        a_event = mock_api.events().quickAdd(
-            calendarId='primary',
-            text='A changed event at Somewhere on June 3rd 10am-10:25am').execute()
+        # Set the return values for events
+        events = self.mock_api.events().list().execute()
+        a_event = events[option - 1];
 
-        Calendar.cancel_event(mock_api, a_event['id'])
+        Calendar.cancel_event(self.mock_api, a_event['id'])
 
-        updated_events = Calendar.get_all_events(mock_api, time_now)
-        changed_event = mock_api.events().get(calendarId='primary', eventId=a_event['id']).execute()
+        # Check if the function is called:
+        self.assertEqual(
+            self.mock_api.events.return_value.update.call_count, 1)
+        args, kwargs = self.mock_api.events.return_value.update.call_args_list[0]
+        self.assertEqual(kwargs['eventId'], a_event['id'])
+
+        updated_events = self.mock_api.events().list().execute()
+        updated_events[option - 1]['status'] = 'cancelled'
+        changed_event = updated_events[option - 1]
 
         """
         After the cancellation of an event, obtain the updated calendar.
@@ -176,6 +229,75 @@ class CalendarTest(unittest.TestCase):
 
         args, kwargs = mock_api.events.return_value.list.call_args_list[0]
         self.assertEqual(kwargs['q'], search_term)
+
+    def test_navigate_events(self):
+        """
+        This test navigates to a certain date and sees if the correct arguments are called as per the function specifies:
+
+        Function involved: navigate_events(api, time_year: int, time_month: int, time_day: int):
+        """
+        # Reset call count of api.events().list()
+        self.mock_api = MagicMock()
+        self.mock_api.events.return_value.list.call_count = 0
+
+        time_year = 2020
+        time_month = 10
+        time_day = 3
+
+        events = Calendar.navigate_events(self.mock_api, time_year, time_month, time_day)
+        self.mock_api.events.return_value.list.return_value.execute.return_value = [
+            {
+                "id": "ABCDEFIGHIG",
+                "summary": "test",
+                "start": {
+                    "dateTime": "2020-10-03T02:00:00+09:00"
+                },
+                "end": {
+                    "dateTime": "2020-10-03T02:45:00+09:00"
+                },
+                "reminders": {
+                    "useDefault": True
+                }
+            },
+        ]
+
+        events = self.mock_api.events.return_value.list.return_value.execute.return_value
+
+        # Calculate starting_time and time_max
+        # Concatenate the strings to properly be fitted in the format
+        starting_time = str(time_year) + "-" + str(time_month) + "-" + str(time_day) + "T00:00:00.0000" + 'Z'
+        time_Max = str(time_year) + "-" + str(time_month) + "-" + str(time_day) + "T23:59:59.0000" + 'Z'
+
+        # Check if the function is called correctly:
+        self.assertEqual(
+            self.mock_api.events.return_value.list.call_count, 1)
+        args, kwargs = self.mock_api.events.return_value.list.call_args_list[0]
+        self.assertEqual(kwargs['timeMax'], time_Max)
+        self.assertEqual(kwargs['timeMin'], starting_time)
+
+    def test_print_events(self):
+        """
+        This test is for the printing of the user menu
+
+        Function involved: print_events(events)
+        """
+        capturedOutput = io.StringIO()
+        sys.stdout = capturedOutput
+        Calendar.print_events(self.events)
+        sys.stdout = sys.__stdout__
+
+        # Predicted output calculation
+        predicted_event = ""
+        reminder = ""
+        num = 1
+        for event in self.events:
+            start = event['start'].get('dateTime', event['start'].get('date'))
+            reminder = str(0) + " minutes before"
+            predicted_event += "Events: " + " " + str(num) + " " + start + " " + event[
+                'summary'] + " " + "| Reminder: " + " " + reminder + "\n"
+            num += 1
+
+        self.assertEqual(predicted_event, capturedOutput.getvalue())
 
 
 def main():
