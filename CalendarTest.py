@@ -53,10 +53,10 @@ class CalendarTest(unittest.TestCase):
         # Set the return values for events
         self.events = self.mock_api.events().list().execute()
 
-    @patch('Calendar.get_calendar_api')
+
     # This test tests number of upcoming events.
-    def test_get_upcoming_events_number(self, mock_api):
-        mock_api.return_value = MagicMock(build)
+    def test_get_upcoming_events_number(self):
+        mock_api = MagicMock()
         num_events = 10
         time = datetime.datetime.utcnow()
         events = Calendar.get_all_events(mock_api, time)

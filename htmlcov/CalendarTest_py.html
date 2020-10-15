@@ -21,8 +21,8 @@
         </h1>
         <img id="keyboard_icon" src="keybd_closed.png" alt="Show keyboard shortcuts" />
         <h2 class="stats">
-            118 statements &nbsp;
-            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">118 run</button>
+            117 statements &nbsp;
+            <button type="button" class="run shortkey_r button_toggle_run" title="Toggle lines run">117 run</button>
             <button type="button" class="mis show_mis shortkey_m button_toggle_mis" title="Toggle lines missing">0 missing</button>
             <button type="button" class="exc show_exc shortkey_x button_toggle_exc" title="Toggle lines excluded">0 excluded</button>
             <button type="button" class="par run show_par shortkey_p button_toggle_par" title="Toggle lines partially run">0 partial</button>
@@ -107,10 +107,10 @@
     <p id="t53" class="pln"><span class="n"><a href="#t53">53</a></span><span class="t">        <span class="com"># Set the return values for events</span>&nbsp;</span><span class="r"></span></p>
     <p id="t54" class="run"><span class="n"><a href="#t54">54</a></span><span class="t">        <span class="nam">self</span><span class="op">.</span><span class="nam">events</span> <span class="op">=</span> <span class="nam">self</span><span class="op">.</span><span class="nam">mock_api</span><span class="op">.</span><span class="nam">events</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">list</span><span class="op">(</span><span class="op">)</span><span class="op">.</span><span class="nam">execute</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p id="t55" class="pln"><span class="n"><a href="#t55">55</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
-    <p id="t56" class="run"><span class="n"><a href="#t56">56</a></span><span class="t">    <span class="op">@</span><span class="nam">patch</span><span class="op">(</span><span class="str">'Calendar.get_calendar_api'</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t56" class="pln"><span class="n"><a href="#t56">56</a></span><span class="t">&nbsp;</span><span class="r"></span></p>
     <p id="t57" class="pln"><span class="n"><a href="#t57">57</a></span><span class="t">    <span class="com"># This test tests number of upcoming events.</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t58" class="run"><span class="n"><a href="#t58">58</a></span><span class="t">    <span class="key">def</span> <span class="nam">test_get_upcoming_events_number</span><span class="op">(</span><span class="nam">self</span><span class="op">,</span> <span class="nam">mock_api</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
-    <p id="t59" class="run"><span class="n"><a href="#t59">59</a></span><span class="t">        <span class="nam">mock_api</span><span class="op">.</span><span class="nam">return_value</span> <span class="op">=</span> <span class="nam">MagicMock</span><span class="op">(</span><span class="nam">build</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t58" class="run"><span class="n"><a href="#t58">58</a></span><span class="t">    <span class="key">def</span> <span class="nam">test_get_upcoming_events_number</span><span class="op">(</span><span class="nam">self</span><span class="op">)</span><span class="op">:</span>&nbsp;</span><span class="r"></span></p>
+    <p id="t59" class="run"><span class="n"><a href="#t59">59</a></span><span class="t">        <span class="nam">mock_api</span> <span class="op">=</span> <span class="nam">MagicMock</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p id="t60" class="run"><span class="n"><a href="#t60">60</a></span><span class="t">        <span class="nam">num_events</span> <span class="op">=</span> <span class="num">10</span>&nbsp;</span><span class="r"></span></p>
     <p id="t61" class="run"><span class="n"><a href="#t61">61</a></span><span class="t">        <span class="nam">time</span> <span class="op">=</span> <span class="nam">datetime</span><span class="op">.</span><span class="nam">datetime</span><span class="op">.</span><span class="nam">utcnow</span><span class="op">(</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
     <p id="t62" class="run"><span class="n"><a href="#t62">62</a></span><span class="t">        <span class="nam">events</span> <span class="op">=</span> <span class="nam">Calendar</span><span class="op">.</span><span class="nam">get_all_events</span><span class="op">(</span><span class="nam">mock_api</span><span class="op">,</span> <span class="nam">time</span><span class="op">)</span>&nbsp;</span><span class="r"></span></p>
@@ -367,7 +367,7 @@
     <div class="content">
         <p>
             <a class="nav" href="index.html">&#xab; index</a> &nbsp; &nbsp; <a class="nav" href="https://coverage.readthedocs.io">coverage.py v5.3</a>,
-            created at 2020-10-15 23:18 +0800
+            created at 2020-10-15 23:26 +0800
         </p>
     </div>
 </div>
