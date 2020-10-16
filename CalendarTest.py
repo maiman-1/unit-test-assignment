@@ -60,6 +60,7 @@ class CalendarTest(unittest.TestCase):
         num_events = 10
         time = datetime.datetime.utcnow()
         events = Calendar.get_all_events(mock_api, time)
+
         self.assertEqual(
             mock_api.events.return_value.list.return_value.execute.return_value.get.call_count, 1)
 
