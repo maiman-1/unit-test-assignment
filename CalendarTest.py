@@ -53,9 +53,12 @@ class CalendarTest(unittest.TestCase):
         # Set the return values for events
         self.events = self.mock_api.events().list().execute()
 
-
     # This test tests number of upcoming events.
     def test_get_upcoming_events_number(self):
+        """
+        This test gets upcoming events up to 10 and check if the number of events returned is the same set.
+        Also, to check if argument of timeMin is five years from now.
+        """
         mock_api = MagicMock()
         num_events = 10
         time = datetime.datetime.utcnow()
@@ -72,6 +75,9 @@ class CalendarTest(unittest.TestCase):
     # Add more test cases here
     @patch('Calendar.input')
     def test_edit_events(self, mock_input_reminders):
+        """
+        This test edits an event and check if the summary of event is changed.
+        """
         mock_api = MagicMock()
         time = MagicMock()
 
